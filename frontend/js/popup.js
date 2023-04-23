@@ -4,6 +4,8 @@ function createPopup(title) {
   const header = document.createElement('div');
   wrapper.classList.add('popup-wrapper');
   popup.classList.add('popup');
+  popup.id = 'popup';
+  popup.tabIndex = 1;
   popup.setAttribute('data-simplebar', '');
   header.classList.add('popup__header');
 
@@ -53,6 +55,7 @@ function createDelPopup(client) {
 
   //кнопка удаления
   const delClientBtn = createVioletButton('Удалить');
+  delClientBtn.tabIndex = 1;
 
   delClientBtn.addEventListener('click', async (event) => {
     event.preventDefault();
@@ -66,6 +69,7 @@ function createDelPopup(client) {
 
   //кнопка отмены
   const cancelBtn = createCancelBtn(wrapper);
+  cancelBtn.tabIndex = 1;
 
   //собираем
   container.append(wrapper);
@@ -73,6 +77,9 @@ function createDelPopup(client) {
   popup.append(bottomButtons);
   bottomButtons.append(delClientBtn);
   bottomButtons.append(cancelBtn);
+
+  document.activeElement.blur();
+  popup.focus();
 }
 
 function createNewClientPopup() {
@@ -126,6 +133,9 @@ function createNewClientPopup() {
   form.append(bottomButtons);
   popup.append(form);
   container.append(wrapper);
+
+  document.activeElement.blur();
+  popup.focus();
 }
 
 async function createUpdatePopup(clientID) {
@@ -190,6 +200,7 @@ async function createUpdatePopup(clientID) {
 
   //кнопка удаления клиента 
   const delBtn = document.createElement('button');
+  delBtn.tabIndex = 1;
   delBtn.classList.add('button_transparent', 'underlined-text');
   delBtn.textContent = 'Удалить клиента';
   delBtn.addEventListener('click', async (event) => {
@@ -211,7 +222,9 @@ async function createUpdatePopup(clientID) {
   form.append(lastNameElement.label);
   form.append(contactsInForm);
   form.append(bottomButtons);
-
   popup.append(form);
   container.append(wrapper);
+
+  document.activeElement.blur();
+  popup.focus();
 }

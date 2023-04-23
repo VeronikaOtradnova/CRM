@@ -5,6 +5,7 @@ function createTextInput(required, description, value, placeholder) {
   label.classList.add('label_text-input');
   input.classList.add('text-input');
   input.setAttribute('type', 'text');
+  input.tabIndex = 1;
 
   if (description && required === true) {
     const descriptionElement = document.createElement('span');
@@ -61,6 +62,7 @@ function createTextInput(required, description, value, placeholder) {
 
 function createAddContactBtn(form, contactElements) {
   const button = document.createElement('button');
+  button.tabIndex = 1;
   button.classList.add('button_transparent', 'add-contact-btn', blackTextClass);
   button.textContent = 'Добавить контакт';
 
@@ -80,11 +82,15 @@ function createAddContactBtn(form, contactElements) {
 }
 
 function createSelect(contact, form, input) {
+  const keyboardNavigationList = [];
+
   const select = document.createElement('div');
   select.classList.add('select', 'select_contacts');
-  const selectHead = document.createElement('div');
-  selectHead.classList.add('select-head', 'select-head_contacts');
+  select.setAttribute('role', 'select');
 
+  const selectHead = document.createElement('button');
+  selectHead.classList.add('select-head', 'select-head_contacts');
+  //устанавливаем заголовок селекта
   if (contact) {
     switch (contact.type) {
       case 'phone':
@@ -107,50 +113,8 @@ function createSelect(contact, form, input) {
     selectHead.textContent = 'Телефон';
   };
 
-  const selectBody = document.createElement('div');
-  selectBody.classList.add('select-body', 'select-body_contacts', 'hidden');
-  const optionsList = document.createElement('ul');
-  optionsList.classList.add('select__options-list', 'select__options-list_contacts');
-
-  function createOption(name) {
-    const option = document.createElement('li');
-    option.classList.add('select__option', 'select__option_contacts');
-    option.textContent = name;
-    
-    option.addEventListener('click', () => {
-      const optionValue = option.textContent;
-      const headValue = selectHead.textContent;
-      option.remove();
-      optionsList.append(createOption(headValue));
-      selectHead.textContent = optionValue;
-      selectBody.classList.add('hidden');
-
-      //в зависимости выбранного значения устанавливаем тип инпута
-      switch (option.textContent) {
-        case 'Телефон':
-          input.type = 'tel';
-          break;
-        case 'Email':
-          input.type = 'email';
-          break;
-        default:
-            input.type = 'text';
-            break;
-      };
-    });
-
-    return option;
-  }
-
-  const optionsNames = ['Телефон', 'Email', 'Vk', 'Facebook', 'Другое'];
-  optionsNames.forEach(name => {
-    if (name !== selectHead.textContent) {
-      optionsList.append(createOption(name));
-    };
-  });
-
-  //когда пользователь открывает один селект, остальные закрываются
-  selectHead.addEventListener('click', () => {
+  function createSelectHeadHandler() {
+    //когда пользователь открывает один селект, остальные закрываются
     const otherSelectBodies = form.querySelectorAll('.select-body_contacts');
     otherSelectBodies.forEach(otherSelectBody => {
       if (!otherSelectBody.classList.contains('hidden') && selectBody.classList.contains('hidden')) {
@@ -160,7 +124,120 @@ function createSelect(contact, form, input) {
 
     selectBody.classList.toggle('hidden');
     selectHead.classList.toggle('select-head_open');
+  }
+
+  const selectBody = document.createElement('div');
+  selectBody.classList.add('select-body', 'select-body_contacts', 'hidden');
+  const optionsList = document.createElement('ul');
+  optionsList.classList.add('select__options-list', 'select__options-list_contacts');
+
+  function createOptionHandler(option) {
+    const optionValue = option.textContent;
+    const headValue = selectHead.textContent;
+
+    //удаляем элемент из выпадающего списка и списка клавиатурной навигации
+    option.remove();
+    const oldOptionIndex = keyboardNavigationList.findIndex(item => item.textContent === option.textContent);
+    keyboardNavigationList.splice(oldOptionIndex, 1);
+
+    //добавляем новый элемент в выпадающий список и список клавиатурной навигации
+    const newOption = createOption(headValue);
+    optionsList.append(newOption);
+    keyboardNavigationList.push(newOption);
+
+    //меняем заголовок селекта и закрываем выпадающий список
+    selectHead.textContent = optionValue;
+    selectBody.classList.add('hidden');
+
+    //в зависимости от выбранного значения устанавливаем тип инпута
+    switch (option.textContent) {
+      case 'Телефон':
+        input.type = 'tel';
+        break;
+      case 'Email':
+        input.type = 'email';
+        break;
+      default:
+          input.type = 'text';
+          break;
+    }
+  }
+
+  function createOption(name) {
+    const option = document.createElement('li');
+    option.classList.add('select__option', 'select__option_contacts');
+    option.textContent = name;
+    option.addEventListener('click', () => createOptionHandler(option));
+  
+    return option;
+  };
+
+  function createSelectKeyboardNavigation(keyboardNavigationList) {
+
+    let activeItemIndex = 0;
+  
+    keyboardNavigationList.forEach(item => {
+      item.addEventListener('keydown', (event) => {
+        let newActiveItem;
+  
+        keyboardNavigationList.forEach(listItem => {
+          if (listItem.classList.contains('select__option_focus')) {
+            listItem.classList.remove('select__option_focus');
+          }
+        })
+  
+        switch (event.code) {
+          case 'ArrowDown':
+            if (activeItemIndex === (keyboardNavigationList.length - 1)) {
+              activeItemIndex = 0;
+            } else {
+              activeItemIndex += 1;
+            }
+            newActiveItem = keyboardNavigationList[activeItemIndex];
+            newActiveItem.classList.add('select__option_focus');
+            break;
+          case 'ArrowUp':
+            if (activeItemIndex === 0) {
+              activeItemIndex = keyboardNavigationList.length - 1;
+            } else {
+              activeItemIndex -= 1;
+            }
+            newActiveItem = keyboardNavigationList[activeItemIndex];
+            newActiveItem.classList.add('select__option_focus');
+            break;
+          case 'Enter':
+            event.preventDefault();
+            if (activeItemIndex) {
+              createOptionHandler(keyboardNavigationList[activeItemIndex]);
+            } else {
+              createSelectHeadHandler();
+            }
+            activeItemIndex = 0;
+            break;
+        };
+      })
+    })
+  }
+
+  const optionsNames = ['Телефон', 'Email', 'Vk', 'Facebook', 'Другое'];
+  optionsNames.forEach(name => {
+    if (name !== selectHead.textContent) {
+      optionsList.append(createOption(name));
+    };
+  });
+ 
+  selectHead.addEventListener('click', (event) => {
+    event.preventDefault();
+    createSelectHeadHandler();
   })
+
+  //делаем так, чтобы по селекту можно было ходить с помощью клавиатуры
+  // const keyboardNavigationList = [];
+  keyboardNavigationList.push(selectHead);
+  optionsList.querySelectorAll('.select__option').forEach((item) => {
+    keyboardNavigationList.push(item);
+  })
+  createSelectKeyboardNavigation(keyboardNavigationList);
 
   select.append(selectHead);
   select.append(selectBody);
@@ -180,6 +257,7 @@ function createContactInput(contact, form, contactElements) {
 
   //инпут
   const input = document.createElement('input');
+  input.tabIndex = 1;
   input.classList.add('contact-input', blackTextClass);
   input.setAttribute('placeholder', 'Введите данные контакта');
 
@@ -187,6 +265,8 @@ function createContactInput(contact, form, contactElements) {
   const selectObject = createSelect(contact, form, input);
   const selectElement = selectObject.select;
   const selectHead = selectObject.selectHead;
+  selectHead.tabIndex = 1;
+  
   switch (selectHead.textContent) { //в зависимости от значения в селекте устанавливаем тип инпута
     case 'Телефон':
       input.type = 'tel';
@@ -216,6 +296,7 @@ function createContactInput(contact, form, contactElements) {
 
   //кнопка удаления контакта
   const delButton = document.createElement('button');
+  delButton.tabIndex = 1;
   delButton.classList.add('del-contact-button');
   delButton.addEventListener('click', (event) => {
     event.preventDefault();

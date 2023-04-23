@@ -26,6 +26,8 @@ function showClientInTable(client) {
   })
 
   const currentRow = document.getElementById(`row-${client.id}`);
+  document.activeElement.blur();
+  currentRow.focus();
   currentRow.classList.add('row_highlighted');
   currentRow.scrollIntoView({block: 'center', behavior: 'smooth'});
   currentRow.addEventListener('click', () => {

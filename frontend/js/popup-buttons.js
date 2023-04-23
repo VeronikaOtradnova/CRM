@@ -1,11 +1,20 @@
 function createCloseBtn(popupWrapper) {
   const button = document.createElement('button');
   button.classList.add('close-btn');
+  button.tabIndex = 1;
 
-  button.addEventListener('click', () => {
+  function closePopup() {
     history.pushState("", document.title, window.location.pathname);
     popupWrapper.remove();
-  });
+  }
+
+  button.addEventListener('keydown', (event) => {
+    if (event.code === 'Enter') {
+      closePopup();
+    } 
+  })
+
+  button.addEventListener('click', closePopup);
 
   return button;
 }
@@ -20,6 +29,7 @@ function createVioletButton(text) {
 
 function createCancelBtn(popupWrapper) {
   const button = document.createElement('button');
+  button.tabIndex = 1;
   button.classList.add('button_transparent', 'underlined-text');
   button.textContent = 'Отмена'; 
   button.addEventListener('click', () => popupWrapper.remove());
@@ -31,6 +41,7 @@ function createSaveBtn(inputs, popupWrapper, methodOfRequest, clientID) {
   //inputs = { surname: ..., name: ..., lastName: ..., contacts: [....] }
 
   const button = createVioletButton('Сохранить');
+  button.tabIndex = 1;
   button.addEventListener('click', async (event) => {
     event.preventDefault();
 

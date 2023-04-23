@@ -17,8 +17,7 @@ function createNewClientBtn() {
   const button = document.createElement('button');
   button.classList.add('new-client-btn');
   button.textContent = 'Добавить клиента';
-
- button.addEventListener('click', createNewClientPopup);
+  button.addEventListener('click', createNewClientPopup);
 
   return button;
 }

@@ -230,6 +230,10 @@
   background-color: #E7E5EB;
 }
 
+.select__option_focus {
+  background-color: #E7E5EB;
+}
+
 .contact-input {
   font-family: 'Open Sans', sans-serif;
   width: 241px;
